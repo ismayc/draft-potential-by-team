@@ -1,0 +1,8 @@
+# uv venv .venv && uv pip install -r requirements.txt --python .venv/bin/python
+nba_api
+polars
+pyarrow
+pandas
+requests
+beautifulsoup4
+lxml

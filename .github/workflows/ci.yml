@@ -1,0 +1,52 @@
+# Adapted from the sports-viewer-meta family CI template: test with full
+# coverage, build, deploy GitHub Pages from main. The Netlify and
+# scripts-runtime jobs are dropped — this repo deploys to Pages only, and its
+# data pipeline is Python run locally, not Node scripts on a schedule.
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+# A push that lands while a deploy is running should supersede it, not queue
+# behind it — but never cancel a deploy midway.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      # Runs the full suite AND writes public/coverage.json for the README
+      # badge. Replaces a separate `npm test` step so the suite isn't run twice.
+      - run: npm run coverage:badge
+      - run: npm run build
+      - uses: actions/upload-pages-artifact@v5
+        with:
+          path: dist
+
+  # Deploys only from main, and only after tests pass — a red build never ships.
+  deploy:
+    needs: test
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - id: deploy
+        uses: actions/deploy-pages@v5

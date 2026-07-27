@@ -1,0 +1,317 @@
+/* ── Tokens ──────────────────────────────────────────────────────────────
+   Two families, deliberately separate: UI chrome (backgrounds, lines, text,
+   accent) and data marks (lottery movement, winner row). The accent never
+   encodes data, so a palette change can't silently change meaning. */
+
+:root[data-theme='dark'] {
+  --bg: #12121a;
+  --card: #1a1a24;
+  --line: #2a2a38;
+  --text: #e8e8f0;
+  --muted: #9a9aac;
+  --accent: #e8702a;
+
+  --viz-up: #4cc38a;
+  --viz-down: #e5484d;
+  --viz-hold: #9a9aac;
+  --zone-winner: rgba(232, 112, 42, 0.14);
+}
+
+:root[data-theme='light'] {
+  --bg: #f7f7f9;
+  --card: #ffffff;
+  --line: #dcdce4;
+  --text: #1c1c28;
+  --muted: #62626f;
+  --accent: #c2551a;
+
+  --viz-up: #18794e;
+  --viz-down: #cd2b31;
+  --viz-hold: #62626f;
+  --zone-winner: rgba(194, 85, 26, 0.12);
+}
+
+/* ── Reset & shell ─────────────────────────────────────────────────────── */
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family:
+    system-ui,
+    -apple-system,
+    'Segoe UI',
+    Roboto,
+    sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  -webkit-font-smoothing: antialiased;
+}
+
+.app {
+  max-width: 60rem;
+  margin: 0 auto;
+  padding: 0 1rem 3rem;
+}
+
+a {
+  color: var(--accent);
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.muted {
+  color: var(--muted);
+}
+
+/* ── Topbar ────────────────────────────────────────────────────────────── */
+
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+  padding: 1.1rem 0 0.7rem;
+}
+
+.brand {
+  display: flex;
+  align-items: baseline;
+  gap: 0.6rem;
+}
+
+.brand h1 {
+  margin: 0;
+  font-size: 1.35rem;
+  letter-spacing: 0.01em;
+}
+
+.brand .era {
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+
+.topbar-tools {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+select {
+  background: var(--card);
+  color: var(--text);
+  border: 1px solid var(--line);
+  border-radius: 0.5rem;
+  padding: 0.4rem 0.6rem;
+  font: inherit;
+  font-size: 0.9rem;
+}
+
+.chip {
+  background: var(--card);
+  color: var(--text);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 0.35rem 0.7rem;
+  font: inherit;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+
+.chip:hover {
+  border-color: var(--accent);
+}
+
+/* ── View tabs ─────────────────────────────────────────────────────────── */
+
+.views {
+  display: flex;
+  gap: 0.25rem;
+  border-bottom: 1px solid var(--line);
+  margin-bottom: 1rem;
+  overflow-x: auto;
+}
+
+.view-btn {
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  color: var(--muted);
+  font: inherit;
+  font-size: 0.95rem;
+  padding: 0.55rem 0.8rem;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.view-btn:hover {
+  color: var(--text);
+}
+
+.view-btn.active {
+  color: var(--text);
+  border-bottom-color: var(--accent);
+}
+
+/* ── Cards & tables ────────────────────────────────────────────────────── */
+
+.card-head.standalone {
+  margin: 0 0 0.9rem;
+}
+
+.year-summary {
+  margin: 0 0 0.3rem;
+  font-size: 1.02rem;
+}
+
+.era-note {
+  margin: 0;
+  font-size: 0.88rem;
+}
+
+.table-wrap {
+  overflow-x: auto;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 0.75rem;
+}
+
+table.league {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.92rem;
+}
+
+.league th,
+.league td {
+  text-align: left;
+  padding: 0.5rem 0.65rem;
+  border-bottom: 1px solid var(--line);
+}
+
+.league tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.league thead th {
+  color: var(--muted);
+  font-weight: 600;
+  font-size: 0.82rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.col-pos {
+  width: 2.5rem;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.num {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+td.num {
+  color: var(--text);
+}
+
+/* ── Lottery view ──────────────────────────────────────────────────────── */
+
+.zone-winner {
+  background: var(--zone-winner);
+}
+
+.crown {
+  margin-left: 0.35rem;
+  color: var(--accent);
+}
+
+.move {
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.move-up {
+  color: var(--viz-up);
+}
+
+.move-down {
+  color: var(--viz-down);
+}
+
+.move-hold {
+  color: var(--viz-hold);
+}
+
+/* ── Draft board ───────────────────────────────────────────────────────── */
+
+.round-sep th {
+  background: var(--bg);
+  color: var(--muted);
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  text-align: left;
+  padding: 0.45rem 0.65rem;
+}
+
+.board-note {
+  font-size: 0.85rem;
+  margin: 0.7rem 0.2rem;
+}
+
+.col-teams {
+  max-width: 16rem;
+}
+
+/* ── About ─────────────────────────────────────────────────────────────── */
+
+.about {
+  max-width: 44rem;
+  line-height: 1.55;
+}
+
+.about h2 {
+  font-size: 1.05rem;
+  margin: 1.4rem 0 0.4rem;
+}
+
+.about ul {
+  padding-left: 1.2rem;
+}
+
+/* ── Footer ────────────────────────────────────────────────────────────── */
+
+.foot {
+  margin-top: 2rem;
+  color: var(--muted);
+  font-size: 0.82rem;
+}
+
+/* ── Responsive column hiding ──────────────────────────────────────────── */
+
+@media (max-width: 40rem) {
+  .hide-sm {
+    display: none;
+  }
+}
+
+@media (max-width: 28rem) {
+  .hide-phone {
+    display: none;
+  }
+}

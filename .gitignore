@@ -1,0 +1,15 @@
+node_modules
+dist
+coverage
+.DS_Store
+*.local
+.env
+.env.*
+
+# Python
+.venv
+__pycache__/
+*.pyc
+
+# Resumable per-player harvest cache (merged output is committed instead)
+data/cache/

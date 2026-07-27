@@ -1,0 +1,37 @@
+{
+  "name": "draft-potential-by-team",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "description": "An unofficial NBA draft lottery and draft board viewer for the two-round era (1989-present)",
+  "license": "MIT",
+  "author": "Chester Ismay (https://chester.rbind.io)",
+  "homepage": "https://ismayc.github.io/draft-potential-by-team/",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ismayc/draft-potential-by-team.git"
+  },
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "coverage:badge": "vitest run --coverage && node scripts/coverage-badge.mjs"
+  },
+  "dependencies": {
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  },
+  "devDependencies": {
+    "@testing-library/jest-dom": "^6.6.3",
+    "@testing-library/react": "^16.1.0",
+    "@testing-library/user-event": "^14.5.2",
+    "@vitejs/plugin-react": "^4.3.4",
+    "@vitest/coverage-v8": "^2.1.9",
+    "jsdom": "^25.0.1",
+    "vite": "^5.4.11",
+    "vitest": "^2.1.9"
+  }
+}
