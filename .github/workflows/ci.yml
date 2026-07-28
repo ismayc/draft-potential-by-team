@@ -36,6 +36,27 @@ jobs:
         with:
           path: dist
 
+  # The data pipeline gate: pytest at 100% statement coverage, the R
+  # fixture/invariant suite, and the Python-vs-R reconcile. Runs entirely
+  # offline against committed data and cached raw HTML.
+  pipeline:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+          cache: pip
+      - run: pip install -r requirements.txt
+      - run: python -m pytest tests/python -q --cov=python --cov-report=term
+      - uses: r-lib/actions/setup-r@v2
+        with:
+          use-public-rspm: true
+      - name: Install R packages (binary via RSPM)
+        run: Rscript -e 'install.packages(c("dplyr", "readr", "tidyr", "testthat"))'
+      - run: Rscript tests/R/run_tests.R
+      - run: python python/06_reconcile.py
+
   # Deploys only from main, and only after tests pass — a red build never ships.
   deploy:
     needs: test

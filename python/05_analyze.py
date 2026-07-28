@@ -31,9 +31,12 @@ Run: .venv/bin/python python/05_analyze.py
 from __future__ import annotations
 
 import csv
-import math
+import sys
 from collections import defaultdict
 from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from draftlib import pava_decreasing, peak3, sample_sd  # noqa: E402
 
 ROOT = Path(__file__).resolve().parents[1]
 DATA = ROOT / "data"
@@ -47,33 +50,6 @@ OUTCOMES = ["ws", "min", "vorp", "peak3"]
 
 def fnum(s: str) -> float:
     return float(s) if s not in ("", None) else 0.0
-
-
-def sample_sd(xs: list[float]) -> float:
-    n = len(xs)
-    if n < 2:
-        return 0.0
-    m = sum(xs) / n
-    return math.sqrt(sum((x - m) ** 2 for x in xs) / (n - 1))
-
-
-def pava_decreasing(picks: list[int], means: dict[int, float],
-                    weights: dict[int, float]) -> dict[int, float]:
-    """Weighted isotonic regression, constrained non-increasing in pick.
-    Pool-adjacent-violators on the negated series."""
-    blocks: list[list] = []  # [neg_mean, weight, [picks]]
-    for p in picks:
-        blocks.append([-means[p], weights[p], [p]])
-        while len(blocks) > 1 and blocks[-2][0] > blocks[-1][0]:
-            b = blocks.pop()
-            a = blocks.pop()
-            w = a[1] + b[1]
-            blocks.append([(a[0] * a[1] + b[0] * b[1]) / w, w, a[2] + b[2]])
-    fit = {}
-    for neg, _, ps in blocks:
-        for p in ps:
-            fit[p] = -neg
-    return fit
 
 
 def load() -> list[dict]:
@@ -110,14 +86,6 @@ def load() -> list[dict]:
                     eff[pid][season] += e
                 team_min[(pid, int(float(r["TEAM_ID"])))] += fnum(r["MIN"])
 
-    def peak3(pid: int) -> float:
-        seasons = [eff[pid][s] for s in sorted(eff[pid])]
-        if not seasons:
-            return 0.0
-        if len(seasons) <= 3:
-            return sum(seasons)
-        return max(sum(seasons[i:i + 3]) for i in range(len(seasons) - 2))
-
     rows = []
     with (DATA / "draft_history.csv").open() as f:
         for r in csv.DictReader(f):
@@ -133,7 +101,7 @@ def load() -> list[dict]:
                 "min": minutes.get(pid, 0.0),
                 "kept_min": team_min.get((pid, int(r["TEAM_ID"])), 0.0),
                 "ws": bb["ws"], "vorp": bb["vorp"],
-                "peak3": peak3(pid),
+                "peak3": peak3([eff[pid][s] for s in sorted(eff[pid])]),
             })
     return rows
 
@@ -218,7 +186,7 @@ def main() -> int:
             hits = sum(1 for p in ps if p["min"] >= HIT_MINUTES)
             vws = [p["v_ws"] for p in ps]
             total_v = sum(vws)
-            half = 1.96 * sample_sd(vws) * math.sqrt(len(ps))
+            half = 1.96 * sample_sd(vws) * len(ps) ** 0.5
             total_min = sum(p["min"] for p in ps)
             kept = sum(p["kept_min"] for p in ps)
             table.append([

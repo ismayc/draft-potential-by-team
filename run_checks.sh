@@ -10,8 +10,8 @@ PY=${PY:-.venv/bin/python}
 echo "── site tests (vitest, 100% coverage) ──"
 npm run test:coverage
 
-echo "── python analysis tests (pytest) ──"
-"$PY" -m pytest tests/python -q
+echo "── python tests (pytest, 100% pipeline coverage enforced) ──"
+"$PY" -m pytest tests/python -q --cov=python --cov-report=term
 
 echo "── R analysis tests (testthat) ──"
 Rscript tests/R/run_tests.R

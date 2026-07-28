@@ -22,24 +22,9 @@ window_hi <- 2015
 hit_minutes <- 10000
 min_draftees <- 8
 
-# Weighted isotonic regression, non-increasing in pick (PAVA on the negated
-# series) — mirrors pava_decreasing() in the Python implementation.
-pava_decreasing <- function(picks, means, weights) {
-  vals <- numeric(0); wts <- numeric(0); sizes <- integer(0)
-  for (i in seq_along(picks)) {
-    vals <- c(vals, -means[i]); wts <- c(wts, weights[i]); sizes <- c(sizes, 1L)
-    while (length(vals) > 1 &&
-           vals[length(vals) - 1] > vals[length(vals)]) {
-      n <- length(vals)
-      w <- wts[n - 1] + wts[n]
-      vals[n - 1] <- (vals[n - 1] * wts[n - 1] + vals[n] * wts[n]) / w
-      wts[n - 1] <- w
-      sizes[n - 1] <- sizes[n - 1] + sizes[n]
-      vals <- vals[-n]; wts <- wts[-n]; sizes <- sizes[-n]
-    }
-  }
-  -rep(vals, sizes)
-}
+source(file.path(dirname(
+  sub("--file=", "", grep("--file=", commandArgs(FALSE), value = TRUE))),
+  "functions.R"))
 
 totals <- read_csv(file.path(root, "data", "career_totals.csv"),
                    show_col_types = FALSE) |>
@@ -72,13 +57,7 @@ season_eff <- seasons |>
 peak3 <- season_eff |>
   arrange(person_id, season) |>
   group_by(person_id) |>
-  summarise(
-    peak3 = if (n() <= 3) sum(eff) else {
-      max(vapply(seq_len(n() - 2),
-                 \(i) sum(eff[i:(i + 2)]), numeric(1)))
-    },
-    .groups = "drop"
-  )
+  summarise(peak3 = peak3_seasons(eff), .groups = "drop")
 
 franchise_min <- seasons |>
   filter(TEAM_ABBREVIATION != "TOT" | is.na(TEAM_ABBREVIATION)) |>

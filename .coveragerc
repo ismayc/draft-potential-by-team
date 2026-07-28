@@ -1,0 +1,11 @@
+# Coverage policy for the Python pipeline: 100% of statements, with two
+# documented exclusions — network I/O (exercised by the real harvest runs
+# and guarded by the parse gates) and __main__ entry lines.
+[run]
+source = python
+
+[report]
+fail_under = 100
+exclude_lines =
+    pragma: no cover
+    if __name__ == "__main__":

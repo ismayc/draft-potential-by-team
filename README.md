@@ -113,7 +113,24 @@ nothing already fetched):
 `R/05_analyze.R` is an independent tidyverse rebuild of `05_analyze.py`
 writing `output/*_r.csv`; the reconcile gate holds the two implementations
 equal, so a finding only exists once both languages produce it.
-`./run_checks.sh` runs everything: site tests, pytest, testthat, reconcile.
+
+## Testing
+
+Correctness is enforced at four layers, all run by `./run_checks.sh` and CI:
+
+- **Site** — vitest at 100% statement/branch/function/line coverage,
+  asserting known ground truth against the real data modules.
+- **Python pipeline** — pytest at 100% statement coverage
+  (`.coveragerc`; network I/O is pragma-excluded and exercised by the real
+  harvest runs instead). Pure functions (`python/draftlib.py`: the isotonic
+  fit, name normalisation, peak-3 window, sample sd) are unit-tested
+  against hand-computed fixtures; parsers are tested against the committed
+  raw HTML; every gate's failure path is triggered deliberately.
+- **R** — testthat runs the same hand-computed fixtures against
+  `R/functions.R` plus invariant checks on the outputs, pinning both
+  implementations to the same expected numbers, not just to each other.
+- **Cross-language** — `06_reconcile.py` requires every cell of every
+  output table to agree between Python and R within 1e-6.
 
 The CSVs are the source of truth — analysis (Python and R) reads them
 directly; the JS modules are a derived re-expression so the site renders with

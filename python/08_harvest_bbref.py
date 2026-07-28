@@ -31,6 +31,10 @@ from pathlib import Path
 
 from bs4 import BeautifulSoup
 
+import sys
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from draftlib import norm  # noqa: E402
+
 ROOT = Path(__file__).resolve().parents[1]
 DATA = ROOT / "data"
 RAW = DATA / "raw" / "bbref"
@@ -52,12 +56,18 @@ def fetch_all() -> None:
         out = RAW / f"{year}.html"
         if out.exists():
             continue
-        req = urllib.request.Request(URL.format(year=year),
-                                     headers={"User-Agent": UA})
-        html = urllib.request.urlopen(req, timeout=60).read()
-        out.write_bytes(html)
-        print(f"  fetched {year}: {len(html):,} bytes")
-        time.sleep(4.0)
+        _fetch(year, out)  # pragma: no cover — network path
+
+
+# Network I/O is excluded from unit coverage (pragma): it is exercised by
+# the real harvest run; every parse is gated afterwards.
+def _fetch(year: int, out: Path) -> None:  # pragma: no cover
+    req = urllib.request.Request(URL.format(year=year),
+                                 headers={"User-Agent": UA})
+    html = urllib.request.urlopen(req, timeout=60).read()
+    out.write_bytes(html)
+    print(f"  fetched {year}: {len(html):,} bytes")
+    time.sleep(4.0)
 
 
 def parse_year(year: int) -> list[dict]:
@@ -77,19 +87,6 @@ def parse_year(year: int) -> list[dict]:
                      "player": cells["player"],
                      **{s: cells.get(s, "") for s in STATS}})
     return rows
-
-
-# Same normalisation the lottery gate uses (kept in sync by hand — both
-# compare a scraped name to nba_api's PLAYER_NAME).
-def norm(name: str) -> str:
-    name = unicodedata.normalize("NFKD", name)
-    name = "".join(c for c in name if not unicodedata.combining(c))
-    # casefold folds sharp-s (Pleiß); dotless i varies by source.
-    name = name.casefold().replace("\u0131", "i")
-    name = re.sub(r"\s+(jr|sr|ii|iii|iv)\.?$", "", name.strip())
-    # Squash punctuation, hyphens, and spacing: sources disagree on all of
-    # them (Zhi-zhi/Zhizhi, J.R./JR, Boumtje-Boumtje).
-    return re.sub(r"[^a-z0-9]", "", name)
 
 
 def load_aliases() -> dict[str, str]:

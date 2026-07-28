@@ -30,6 +30,12 @@ def harvest_draft_history() -> None:
     if out.exists():
         print(f"already present: {out}")
         return
+    _fetch_draft_history(out)  # pragma: no cover — network path
+
+
+# Network I/O is excluded from unit coverage (pragma): it is exercised by
+# the real harvest run and guarded by the row-count/name gates instead.
+def _fetch_draft_history(out) -> None:  # pragma: no cover
     from nba_api.stats.endpoints import drafthistory
     df = drafthistory.DraftHistory(timeout=60).get_data_frames()[0]
     df["SEASON"] = df["SEASON"].astype(int)

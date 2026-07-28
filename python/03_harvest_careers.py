@@ -45,7 +45,7 @@ def patch_nba_api_ua() -> None:
         "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36")
 
 
-def _no_data(pid: int) -> bool:
+def _no_data(pid: int) -> bool:  # pragma: no cover
     """True when NBA Stats answers playercareerstats with an empty body."""
     import requests
     from nba_api.stats.library import http as nba_http
@@ -69,7 +69,9 @@ def fetch_missing(ids: list[int]) -> int:
     missing = [i for i in ids if not (CACHE / f"{i}.csv").exists()]
     print(f"{len(ids):,} players, {len(missing):,} to fetch")
     failures = 0
-    for n, pid in enumerate(missing, 1):
+    # Network loop excluded from unit coverage (pragma): the live
+    # harvest exercises it; the merge gate catches gaps.
+    for n, pid in enumerate(missing, 1):  # pragma: no cover
         try:
             ep = playercareerstats.PlayerCareerStats(
                 player_id=pid, timeout=60)
