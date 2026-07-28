@@ -38,11 +38,14 @@ describe('TeamsView', () => {
     expect(tables[1].querySelectorAll('tr').length).toBe(STEALS.length)
   })
 
-  it('ranks franchises by value above slot', () => {
+  it('ranks franchises by WS value with intervals and kept share', () => {
     render(<TeamsView />)
     const first = document.querySelector('tbody tr')
     expect(first.textContent).toContain(TEAMS[0].team)
+    expect(first.textContent).toContain('%')
+    expect(first.textContent).toContain(' to ')
     expect(screen.getByText(/credited to the selecting franchise/i)).toBeInTheDocument()
+    expect(screen.getByText(/intervals cross zero/i)).toBeInTheDocument()
   })
 
   it('lists the top steal with its pick number', () => {

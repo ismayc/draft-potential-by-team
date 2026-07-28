@@ -24,7 +24,7 @@ def rows(name: str) -> list[dict]:
         return list(csv.DictReader(f))
 
 
-def fmt(n: str) -> str:
+def fmt(n: str | float) -> str:
     return f"{float(n):,.0f}"
 
 
@@ -34,30 +34,32 @@ def build() -> str:
     teams = rows("teams")
     steals = rows("steals")
 
-    top = curve[0]
-    bottom = curve[-1]
+    first, last = curve[0], curve[-1]
+    zero_cross = sum(1 for t in teams
+                     if float(t["ci_lo"]) <= 0 <= float(t["ci_hi"]))
     lines = [
         START,
         "",
         "Draft classes 1989-2015 (every class with ten full NBA seasons to",
-        "accumulate a career), value measured in career regular-season",
-        "minutes relative to the mean for the pick's slot bucket.",
+        "accumulate a career). The headline outcome is career Win Shares",
+        "(Basketball-Reference); value is WS above the expectation for the",
+        "pick slot, where the expectation curve is a weighted isotonic fit",
+        "over picks 1-60 — no buckets, no functional form.",
         "",
-        f"- The slot gradient is steep: picks {top['bucket']} average",
-        f"  {fmt(top['mean_min'])} career minutes; picks {bottom['bucket']}"
-        f" average {fmt(bottom['mean_min'])}",
-        f"  ({float(top['mean_min']) / float(bottom['mean_min']):.0f}x).",
+        f"- The slot gradient: pick 1 carries an expectation of",
+        f"  {fmt(first['exp_ws'])} career Win Shares; pick 60 carries"
+        f" {fmt(last['exp_ws'])}.",
         "",
-        "**Colleges producing the most NBA talent** (8+ draftees; hits are",
-        f"careers of 10,000+ minutes):",
+        "**Colleges producing the most NBA value** (8+ draftees; hits are",
+        "careers of 10,000+ minutes):",
         "",
-        "| College | Draftees | Hits | Hit rate | Minutes above slot |",
+        "| College | Draftees | Hits | Hit rate | WS above slot |",
         "| --- | --- | --- | --- | --- |",
     ]
     for c in colleges[:5]:
         lines.append(
             f"| {c['college']} | {c['draftees']} | {c['hits']} | "
-            f"{float(c['hit_rate']):.0%} | +{fmt(c['value_added'])} |")
+            f"{float(c['hit_rate']):.0%} | +{fmt(c['value_ws'])} |")
     best_rate = max((c for c in colleges if int(c["draftees"]) >= 15),
                     key=lambda c: float(c["hit_rate"]))
     lines += [
@@ -67,38 +69,49 @@ def build() -> str:
         f"picks ({float(best_rate['hit_rate']):.0%}) became 10,000-minute",
         "NBA players.",
         "",
-        "**Teams drafting the best, relative to where they picked**:",
+        "**Teams drafting the best, relative to where they picked** (the",
+        "95% interval is a normal approximation on the team's pick values;",
+        "kept share is the fraction of drafted careers' minutes played for",
+        "the drafting franchise):",
         "",
-        "| Franchise | Picks | Avg pick | Hits | Minutes above slot |",
-        "| --- | --- | --- | --- | --- |",
+        "| Franchise | Picks | Avg pick | WS above slot | 95% interval "
+        "| Kept share |",
+        "| --- | --- | --- | --- | --- | --- |",
     ]
     for t in teams[:5]:
         lines.append(
-            f"| {t['team']} | {t['picks']} | {t['avg_pick']} | {t['hits']} | "
-            f"+{fmt(t['value_added'])} |")
+            f"| {t['team']} | {t['picks']} | {t['avg_pick']} | "
+            f"+{fmt(t['value_ws'])} | {fmt(t['ci_lo'])} to "
+            f"{fmt(t['ci_hi'])} | {float(t['kept_share']):.0%} |")
     worst = teams[-1]
+    keeper = max(teams, key=lambda t: float(t["kept_share"]))
     lines += [
         "",
-        f"At the other end, the {worst['team']} sit last: "
-        f"{fmt(worst['value_added'])} minutes against slot expectation "
-        f"across {worst['picks']} picks.",
+        f"The {worst['team']} sit last ({fmt(worst['value_ws'])} WS against",
+        f"slot expectation). Draft value is heavy-tailed: {zero_cross} of 30",
+        "franchise intervals cross zero, so most of the league is",
+        "statistically indistinguishable on drafting skill — the ordering",
+        "is the estimate, not a verdict. The",
+        f"{keeper['team']} kept the largest share of the careers they",
+        f"drafted ({float(keeper['kept_share']):.0%} of minutes).",
         "",
-        "**The biggest steals** (career minutes furthest above the pick's",
-        "slot mean):",
+        "**The biggest steals** (career WS furthest above the pick's slot",
+        "expectation):",
         "",
-        "| Player | Year | Pick | Drafted by | Minutes above slot |",
+        "| Player | Year | Pick | Drafted by | WS above slot |",
         "| --- | --- | --- | --- | --- |",
     ]
     for s in steals[:5]:
         lines.append(
             f"| {s['player']} | {s['year']} | {s['pick']} | {s['team']} | "
-            f"+{fmt(s['value_added'])} |")
+            f"+{fmt(s['value_ws'])} |")
     lines += [
         "",
         "Full tables: `output/colleges.csv`, `output/teams.csv`,",
-        "`output/steals.csv`, `output/pick_curve.csv` (each mirrored by an",
-        "`_r.csv` twin from the independent R implementation; the reconcile",
-        "gate holds them equal).",
+        "`output/steals.csv`, `output/pick_curve.csv` — each with VORP,",
+        "career-minutes, and within-class-z companion columns, and each",
+        "mirrored by an `_r.csv` twin from the independent R implementation",
+        "(the reconcile gate holds them equal).",
         "",
         END,
     ]

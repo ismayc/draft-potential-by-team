@@ -155,13 +155,16 @@ def main() -> int:
               "(re-run after python/05_analyze.py)")
         return 0
     colleges = load_table("colleges", {"draftees", "hits"},
-                          {"hit_rate", "total_min", "value_added"})
+                          {"hit_rate", "total_ws", "value_ws", "value_ws_z",
+                           "value_vorp", "value_min"})
     teams = load_table("teams", {"picks", "hits"},
-                       {"avg_pick", "total_min", "expected_min",
-                        "value_added"})
+                       {"avg_pick", "total_ws", "value_ws", "ci_lo", "ci_hi",
+                        "value_ws_z", "value_vorp", "value_min", "kept_min",
+                        "kept_share"})
     steals = load_table("steals", {"year", "pick"},
-                        {"career_min", "expected_min", "value_added"})
-    curve = load_table("pick_curve", {"picks"}, {"mean_min"})
+                        {"ws", "expected_ws", "value_ws", "vorp"})
+    curve = load_table("pick_curve", {"pick", "picks"},
+                       {"exp_ws", "exp_min", "exp_vorp", "exp_peak3"})
     write_module(OUT / "analysis.js", (
         "export const WINDOW = [1989, 2015]\n"
         f"export const COLLEGES = {js(colleges)}\n"

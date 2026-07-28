@@ -147,8 +147,12 @@ def norm(name: str) -> str:
     import unicodedata
     name = unicodedata.normalize("NFKD", name)
     name = "".join(c for c in name if not unicodedata.combining(c))
-    name = name.lower().replace(".", "").replace("'", "").replace(",", "")
-    return re.sub(r"\s+(jr|sr|ii|iii|iv)$", "", name.strip())
+    # casefold folds sharp-s (Pleiß); dotless i varies by source.
+    name = name.casefold().replace("\u0131", "i")
+    name = re.sub(r"\s+(jr|sr|ii|iii|iv)\.?$", "", name.strip())
+    # Squash punctuation, hyphens, and spacing: sources disagree on all of
+    # them (Zhi-zhi/Zhizhi, J.R./JR, Boumtje-Boumtje).
+    return re.sub(r"[^a-z0-9]", "", name)
 
 
 def gate(year: int, rows: list[dict], picks: dict[tuple[int, int], str],

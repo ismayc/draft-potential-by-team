@@ -1,7 +1,8 @@
-# Independent R rebuild of python/05_analyze.py — same questions, same
-# definitions, written against the same committed CSVs. The reconcile gate
-# (python/06_reconcile.py) compares every number in the four output tables
-# to the Python run and fails the build on any disagreement.
+# Independent R rebuild of python/05_analyze.py (v2) — same questions, same
+# definitions: career Win Shares as the headline outcome, weighted isotonic
+# (non-increasing) slot expectations over picks 1..60, drafting-franchise
+# minutes split, peak-3-consecutive-season efficiency, normal-approximation
+# CIs, within-class z values. python/06_reconcile.py holds the two equal.
 #
 # Run: Rscript R/05_analyze.R
 
@@ -21,22 +22,68 @@ window_hi <- 2015
 hit_minutes <- 10000
 min_draftees <- 8
 
-bucket_of <- function(pick) {
-  case_when(
-    pick <= 5 ~ "1-5",
-    pick <= 10 ~ "6-10",
-    pick <= 14 ~ "11-14",
-    pick <= 20 ~ "15-20",
-    pick <= 30 ~ "21-30",
-    pick <= 45 ~ "31-45",
-    TRUE ~ "46-60"
-  )
+# Weighted isotonic regression, non-increasing in pick (PAVA on the negated
+# series) — mirrors pava_decreasing() in the Python implementation.
+pava_decreasing <- function(picks, means, weights) {
+  vals <- numeric(0); wts <- numeric(0); sizes <- integer(0)
+  for (i in seq_along(picks)) {
+    vals <- c(vals, -means[i]); wts <- c(wts, weights[i]); sizes <- c(sizes, 1L)
+    while (length(vals) > 1 &&
+           vals[length(vals) - 1] > vals[length(vals)]) {
+      n <- length(vals)
+      w <- wts[n - 1] + wts[n]
+      vals[n - 1] <- (vals[n - 1] * wts[n - 1] + vals[n] * wts[n]) / w
+      wts[n - 1] <- w
+      sizes[n - 1] <- sizes[n - 1] + sizes[n]
+      vals <- vals[-n]; wts <- wts[-n]; sizes <- sizes[-n]
+    }
+  }
+  -rep(vals, sizes)
 }
 
 totals <- read_csv(file.path(root, "data", "career_totals.csv"),
                    show_col_types = FALSE) |>
   transmute(person_id = as.integer(PLAYER_ID),
             career_min = coalesce(MIN, 0))
+
+bbref <- read_csv(file.path(root, "data", "bbref_draft.csv"),
+                  show_col_types = FALSE) |>
+  transmute(year, pick, ws = coalesce(ws, 0), vorp = coalesce(vorp, 0))
+
+seasons <- read_csv(file.path(root, "data", "careers.csv"),
+                    show_col_types = FALSE) |>
+  mutate(across(c(PTS, REB, AST, STL, BLK, FGA, FGM, FTA, FTM, TOV, MIN),
+                \(x) coalesce(x, 0)),
+         eff = PTS + REB + AST + STL + BLK - (FGA - FGM) - (FTA - FTM) - TOV)
+
+# Per-season efficiency: a multi-team season keeps its TOT row, otherwise
+# the team rows sum to the season.
+season_eff <- seasons |>
+  group_by(person_id = PLAYER_ID, season = SEASON_ID) |>
+  summarise(
+    eff = if (any(TEAM_ABBREVIATION == "TOT", na.rm = TRUE)) {
+      sum(eff[TEAM_ABBREVIATION == "TOT"])
+    } else {
+      sum(eff)
+    },
+    .groups = "drop"
+  )
+
+peak3 <- season_eff |>
+  arrange(person_id, season) |>
+  group_by(person_id) |>
+  summarise(
+    peak3 = if (n() <= 3) sum(eff) else {
+      max(vapply(seq_len(n() - 2),
+                 \(i) sum(eff[i:(i + 2)]), numeric(1)))
+    },
+    .groups = "drop"
+  )
+
+franchise_min <- seasons |>
+  filter(TEAM_ABBREVIATION != "TOT" | is.na(TEAM_ABBREVIATION)) |>
+  group_by(person_id = PLAYER_ID, team_id = as.integer(TEAM_ID)) |>
+  summarise(fmin = sum(MIN), .groups = "drop")
 
 draft <- read_csv(file.path(root, "data", "draft_history.csv"),
                   show_col_types = FALSE) |>
@@ -47,73 +94,104 @@ draft <- read_csv(file.path(root, "data", "draft_history.csv"),
     org = ORGANIZATION, org_type = ORGANIZATION_TYPE
   ) |>
   left_join(totals, by = "person_id") |>
-  mutate(career_min = coalesce(career_min, 0))
+  left_join(bbref, by = c("year", "pick")) |>
+  left_join(peak3, by = "person_id") |>
+  left_join(franchise_min, by = c("person_id", "team_id")) |>
+  mutate(min = coalesce(career_min, 0),
+         ws = coalesce(ws, 0), vorp = coalesce(vorp, 0),
+         peak3 = coalesce(peak3, 0), kept_min = coalesce(fmin, 0))
 
-# Current franchise label: city + name on the id's most recent pick.
 labels <- draft |>
   arrange(year, pick) |>
   group_by(team_id) |>
   summarise(label = last(team), .groups = "drop")
 
-window <- draft |>
-  filter(year >= window_lo, year <= window_hi) |>
-  mutate(bucket = bucket_of(pick))
+window <- draft |> filter(year >= window_lo, year <= window_hi)
 
-curve <- window |>
-  group_by(bucket) |>
-  summarise(picks = n(), mean_min = mean(career_min), .groups = "drop")
+# ── Slot expectations ────────────────────────────────────────────────────
+per_pick <- window |>
+  group_by(pick) |>
+  summarise(picks = n(), m_ws = mean(ws), m_min = mean(min),
+            m_vorp = mean(vorp), m_peak3 = mean(peak3), .groups = "drop") |>
+  arrange(pick)
 
-bucket_order <- c("1-5", "6-10", "11-14", "15-20", "21-30", "31-45", "46-60")
+curve <- per_pick |>
+  mutate(
+    exp_ws = pava_decreasing(pick, m_ws, picks),
+    exp_min = pava_decreasing(pick, m_min, picks),
+    exp_vorp = pava_decreasing(pick, m_vorp, picks),
+    exp_peak3 = pava_decreasing(pick, m_peak3, picks)
+  )
+
 curve |>
-  mutate(bucket = factor(bucket, levels = bucket_order)) |>
-  arrange(bucket) |>
-  mutate(mean_min = round(mean_min, 1)) |>
+  transmute(pick, picks, exp_ws = round(exp_ws, 3),
+            exp_min = round(exp_min, 3), exp_vorp = round(exp_vorp, 3),
+            exp_peak3 = round(exp_peak3, 3)) |>
   write_csv(file.path(out_dir, "pick_curve_r.csv"))
 
 window <- window |>
-  left_join(select(curve, bucket, expected = mean_min), by = "bucket") |>
-  mutate(value = career_min - expected)
+  left_join(select(curve, pick, exp_ws, exp_min, exp_vorp, exp_peak3),
+            by = "pick") |>
+  mutate(v_ws = ws - exp_ws, v_min = min - exp_min,
+         v_vorp = vorp - exp_vorp, v_peak3 = peak3 - exp_peak3) |>
+  group_by(year) |>
+  mutate(v_ws_z = v_ws / sd(v_ws)) |>
+  ungroup()
 
+# ── Colleges ─────────────────────────────────────────────────────────────
 window |>
   filter(org_type == "College/University") |>
   group_by(college = org) |>
   summarise(
     draftees = n(),
-    hits = sum(career_min >= hit_minutes),
+    hits = sum(min >= hit_minutes),
     hit_rate = round(hits / draftees, 3),
-    total_min = round(sum(career_min), 1),
-    value_added = round(sum(value), 1),
+    total_ws = round(sum(ws), 1),
+    value_ws = round(sum(v_ws), 1),
+    value_ws_z = round(sum(v_ws_z), 2),
+    value_vorp = round(sum(v_vorp), 1),
+    value_min = round(sum(v_min), 1),
     .groups = "drop"
   ) |>
   filter(draftees >= min_draftees) |>
-  arrange(desc(value_added), college) |>
+  arrange(desc(value_ws), college) |>
   write_csv(file.path(out_dir, "colleges_r.csv"))
 
+# ── Teams ────────────────────────────────────────────────────────────────
 window |>
   group_by(team_id) |>
   summarise(
     picks = n(),
     avg_pick = round(mean(pick), 1),
-    hits = sum(career_min >= hit_minutes),
-    total_min = round(sum(career_min), 1),
-    expected_min = round(sum(expected), 1),
-    value_added = round(sum(value), 1),
+    hits = sum(min >= hit_minutes),
+    total_ws = round(sum(ws), 1),
+    raw_value = sum(v_ws),
+    half = 1.96 * sd(v_ws) * sqrt(n()),
+    value_ws = round(raw_value, 1),
+    ci_lo = round(raw_value - half, 1),
+    ci_hi = round(raw_value + half, 1),
+    value_ws_z = round(sum(v_ws_z), 2),
+    value_vorp = round(sum(v_vorp), 1),
+    value_min = round(sum(v_min), 1),
+    kept_min = round(sum(kept_min), 1),
+    kept_share = round(sum(kept_min) / sum(min), 3),
     .groups = "drop"
   ) |>
   left_join(labels, by = "team_id") |>
-  transmute(team = label, picks, avg_pick, hits,
-            total_min, expected_min, value_added) |>
-  arrange(desc(value_added), team) |>
+  transmute(team = label, picks, avg_pick, hits, total_ws, value_ws,
+            ci_lo, ci_hi, value_ws_z, value_vorp, value_min,
+            kept_min, kept_share) |>
+  arrange(desc(value_ws), team) |>
   write_csv(file.path(out_dir, "teams_r.csv"))
 
+# ── Steals ───────────────────────────────────────────────────────────────
 window |>
-  arrange(desc(value), player) |>
+  arrange(desc(v_ws), player) |>
   slice_head(n = 15) |>
   left_join(labels, by = "team_id") |>
   transmute(player, year, pick, team = label, college = org,
-            career_min = round(career_min, 1),
-            expected_min = round(expected, 1),
-            value_added = round(value, 1)) |>
+            ws = round(ws, 1), expected_ws = round(exp_ws, 1),
+            value_ws = round(v_ws, 1), vorp = round(vorp, 1)) |>
   write_csv(file.path(out_dir, "steals_r.csv"))
 
 cat(sprintf("window %d-%d: %d picks\n", window_lo, window_hi, nrow(window)))
