@@ -17,6 +17,10 @@ what each pick became over an NBA career.
   and the player selected at that slot.
 - **Draft board** — both rounds of each draft: player, drafting team, college
   or origin, and career totals (games, minutes, points, seasons, franchises).
+- **Colleges** — every program with 8+ draftees ranked by career minutes
+  its picks delivered above slot expectation (from the reconciled analysis).
+- **Teams** — all 30 franchises ranked the same way, plus the biggest
+  individual steals.
 - **About** — provenance, how the lottery formats changed, and caveats.
 
 Navigation follows the URL: `?view=draft&year=1993` is shareable state.

@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useState } from 'react'
 import LotteryView from './components/LotteryView.jsx'
 import DraftBoardView from './components/DraftBoardView.jsx'
+import CollegesView from './components/CollegesView.jsx'
+import TeamsView from './components/TeamsView.jsx'
 import AboutView from './components/AboutView.jsx'
 import { DRAFT_YEARS } from './data/drafts.js'
 import { readState, writeState } from './utils/urlState.js'
@@ -14,8 +16,14 @@ import { readState, writeState } from './utils/urlState.js'
 const VIEWS = [
   { id: 'lottery', label: 'Lottery' },
   { id: 'draft', label: 'Draft board' },
+  { id: 'colleges', label: 'Colleges' },
+  { id: 'teams', label: 'Teams' },
   { id: 'about', label: 'About' },
 ]
+
+// Only the per-year views use the year picker; the analysis views aggregate
+// a fixed window and About is prose.
+const YEAR_VIEWS = ['lottery', 'draft']
 
 export default function App() {
   const initial = useMemo(() => readState(), [])
@@ -51,16 +59,18 @@ export default function App() {
         </div>
 
         <div className="topbar-tools">
-          <label className="year-pick">
-            <span className="sr-only">Draft year</span>
-            <select value={active} onChange={(e) => setYear(Number(e.target.value))}>
-              {years.map((y) => (
-                <option key={y} value={y}>
-                  {y}
-                </option>
-              ))}
-            </select>
-          </label>
+          {YEAR_VIEWS.includes(view) && (
+            <label className="year-pick">
+              <span className="sr-only">Draft year</span>
+              <select value={active} onChange={(e) => setYear(Number(e.target.value))}>
+                {years.map((y) => (
+                  <option key={y} value={y}>
+                    {y}
+                  </option>
+                ))}
+              </select>
+            </label>
+          )}
 
           <button
             type="button"
@@ -89,6 +99,8 @@ export default function App() {
 
       {view === 'lottery' && <LotteryView year={active} />}
       {view === 'draft' && <DraftBoardView year={active} />}
+      {view === 'colleges' && <CollegesView />}
+      {view === 'teams' && <TeamsView />}
       {view === 'about' && <AboutView />}
 
       <footer className="foot">

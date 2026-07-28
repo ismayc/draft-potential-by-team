@@ -37,6 +37,24 @@ describe('App', () => {
     expect(window.location.search).toBe('')
   })
 
+  it('shows the year picker only on per-year views', async () => {
+    setUrl('')
+    const user = userEvent.setup()
+    render(<App />)
+    expect(screen.getByLabelText('Draft year')).toBeInTheDocument()
+
+    await user.click(screen.getByRole('button', { name: 'Colleges' }))
+    expect(screen.getByText(/Programs with 8\+ draftees/)).toBeInTheDocument()
+    expect(screen.queryByLabelText('Draft year')).toBeNull()
+
+    await user.click(screen.getByRole('button', { name: 'Teams' }))
+    expect(screen.getByText('Biggest steals')).toBeInTheDocument()
+    expect(screen.queryByLabelText('Draft year')).toBeNull()
+
+    await user.click(screen.getByRole('button', { name: 'Draft board' }))
+    expect(screen.getByLabelText('Draft year')).toBeInTheDocument()
+  })
+
   it('honours a deep link with view and year', () => {
     setUrl('view=draft&year=1993')
     render(<App />)

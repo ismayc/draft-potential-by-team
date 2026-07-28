@@ -20,7 +20,7 @@ describe('readState', () => {
   })
 
   it('exposes the view whitelist', () => {
-    expect(VIEWS).toEqual(['lottery', 'draft', 'about'])
+    expect(VIEWS).toEqual(['lottery', 'draft', 'colleges', 'teams', 'about'])
   })
 })
 

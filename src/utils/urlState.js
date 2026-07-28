@@ -7,7 +7,7 @@
  * clean and a shared link carries exactly the choices its sender made.
  */
 
-export const VIEWS = ['lottery', 'draft', 'about']
+export const VIEWS = ['lottery', 'draft', 'colleges', 'teams', 'about']
 
 const DEFAULTS = {
   view: 'lottery',

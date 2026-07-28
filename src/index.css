@@ -278,6 +278,21 @@ td.num {
   max-width: 16rem;
 }
 
+/* ── Analysis views ────────────────────────────────────────────────────── */
+
+.val-up {
+  color: var(--viz-up);
+}
+
+.val-down {
+  color: var(--viz-down);
+}
+
+.section-head {
+  font-size: 1.02rem;
+  margin: 1.4rem 0.2rem 0.6rem;
+}
+
 /* ── About ─────────────────────────────────────────────────────────────── */
 
 .about {
