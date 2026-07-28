@@ -4,31 +4,31 @@
    encodes data, so a palette change can't silently change meaning. */
 
 :root[data-theme='dark'] {
-  --bg: #12121a;
-  --card: #1a1a24;
-  --line: #2a2a38;
-  --text: #e8e8f0;
-  --muted: #9a9aac;
-  --accent: #e8702a;
+  --bg: #0f0e0d;
+  --card: #1a1a19;
+  --line: #2c2c2a;
+  --text: #f5f3ec;
+  --muted: #a09e94;
+  --accent: #e8703a;
 
   --viz-up: #4cc38a;
   --viz-down: #e5484d;
-  --viz-hold: #9a9aac;
-  --zone-winner: rgba(232, 112, 42, 0.14);
+  --viz-hold: #a09e94;
+  --zone-winner: rgba(232, 112, 58, 0.14);
 }
 
 :root[data-theme='light'] {
-  --bg: #f7f7f9;
+  --bg: #faf9f6;
   --card: #ffffff;
-  --line: #dcdce4;
-  --text: #1c1c28;
-  --muted: #62626f;
-  --accent: #c2551a;
+  --line: #e1e0d9;
+  --text: #161512;
+  --muted: #66655e;
+  --accent: #a83f12;
 
   --viz-up: #18794e;
   --viz-down: #cd2b31;
-  --viz-hold: #62626f;
-  --zone-winner: rgba(194, 85, 26, 0.12);
+  --viz-hold: #66655e;
+  --zone-winner: rgba(168, 63, 18, 0.1);
 }
 
 /* ── Reset & shell ─────────────────────────────────────────────────────── */
@@ -95,8 +95,12 @@ a {
 
 .brand h1 {
   margin: 0;
-  font-size: 1.35rem;
-  letter-spacing: 0.01em;
+  font-family: 'Barlow Condensed', system-ui, sans-serif;
+  font-weight: 600;
+  font-size: 1.7rem;
+  line-height: 1;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
 }
 
 .brand .era {
