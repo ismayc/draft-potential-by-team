@@ -13,3 +13,5 @@ __pycache__/
 
 # Resumable per-player harvest cache (merged output is committed instead)
 data/cache/
+
+.coverage
