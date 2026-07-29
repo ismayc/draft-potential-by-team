@@ -10,8 +10,9 @@
     />
     <meta name="theme-color" content="#0f0e0d" />
     <!-- Relative paths throughout: this ships to GitHub Pages under a repo
-         subpath, so a leading slash would break it. -->
-    <link rel="icon" href="./favicon.svg" type="image/svg+xml" />
+         subpath, so a leading slash would break it. Favicon is the family's
+         shared emoji data URI (see basketball-analysis-tools/family_brand.py). -->
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🏀</text></svg>" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -26,7 +27,10 @@
     />
     <meta property="og:type" content="website" />
     <meta property="og:url" content="https://ismayc.github.io/draft-potential-by-team/" />
-    <meta property="og:site_name" content="NBA Draft Potential by Team" />
+    <meta property="og:site_name" content="Basketball Data Science" />
+    <meta property="og:image" content="https://ismayc.github.io/basketball-data-science/og-image.png" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:image" content="https://ismayc.github.io/basketball-data-science/og-image.png" />
 
     <script>
       // Resolve the theme before first paint. Doing this in React would mean a
