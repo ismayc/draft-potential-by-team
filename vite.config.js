@@ -18,7 +18,8 @@ export default defineConfig({
     fileParallelism: false,
     coverage: {
       provider: 'v8',
-      all: true,
+      // Vitest 4 dropped `coverage.all`: setting `include` is what pulls
+      // files no test imports into the report.
       include: ['src/**/*.{js,jsx}'],
       // Generated data modules and the DOM entry point carry no logic to cover.
       exclude: ['src/main.jsx', 'src/data/**', 'src/**/*.test.{js,jsx}'],
