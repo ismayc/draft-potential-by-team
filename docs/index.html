@@ -161,6 +161,21 @@ details.terms summary { padding: .55rem .9rem; cursor: pointer;
   color: var(--ink-2); font-weight: 600; }
 details.terms ul { margin: 0; padding: .2rem 1.4rem .8rem; }
 details.terms li { margin: .3rem 0; color: var(--ink-2); }
+/* sticky section nav (study pages): the masthead scrolls away, this stays */
+.sectionnav { position: sticky; top: 0; z-index: 30; background: var(--surface);
+  border-bottom: 1px solid var(--rule); }
+.sectionnav .inner { width: min(1200px, 94vw); margin: 0 auto; display: flex;
+  gap: 1.3rem; overflow-x: auto; white-space: nowrap; scrollbar-width: none;
+  padding: .55rem 0 .45rem; }
+.sectionnav .inner::-webkit-scrollbar { display: none; }
+.sectionnav a { font-family: "Barlow Condensed", system-ui, sans-serif;
+  font-weight: 500; font-size: .95rem; letter-spacing: .1em;
+  text-transform: uppercase; color: var(--ink-3); text-decoration: none;
+  padding-bottom: .15rem; border-bottom: 2px solid transparent; }
+.sectionnav a:hover { color: var(--ink); }
+.sectionnav a[aria-current="true"] { color: var(--accent-ink);
+  border-bottom-color: var(--accent); }
+main [id] { scroll-margin-top: 3.6rem; }
 /* hub cards */
 .cards { display: grid; grid-template-columns:
   repeat(auto-fit, minmax(290px, 1fr)); gap: 1rem; margin: 1.5rem 0; }
@@ -209,6 +224,7 @@ html.reveal .is-in { opacity: 1; transform: none; }
   <a href="https://github.com/ismayc/draft-potential-by-team">Code on GitHub</a>
   <button class="themebtn" type="button" aria-label="Toggle color theme">◐</button>
 </div></header>
+<nav class="sectionnav" aria-label="Sections"><div class="inner"><a href="#the-yardstick">The yardstick</a><a href="#the-franchises">The franchises</a><a href="#the-colleges">The colleges</a><a href="#the-steals">The steals</a><a href="#explore-it-yourself">Explore it yourself</a><a href="#method-code-and-verification">Method</a></div></nav>
 <main>
 <div class="eyebrow">27 draft classes, priced by slot</div>
 <h1>Draft value is real. Provable draft skill is rare.</h1>
@@ -237,7 +253,7 @@ holds every lottery and full draft board since 1989.</p>
 <div class="sub">7 of 10 draftees became 10,000-minute NBA players.</div></div>
 </div>
 
-<div class="eyebrow beat">The yardstick</div>
+<div class="eyebrow beat" id="the-yardstick">The yardstick</div>
 
 <h2>A pick slot is a price</h2>
 <p>Before anyone gets credit for drafting well, the draft itself has to be
@@ -247,7 +263,7 @@ Shares, pick 60 carries 2. Everything that follows is measured against this
 curve. A player's value is not his career; it is his career minus what his
 slot was already worth.</p>
 <figure class="figure-card"><iframe src="figures/fig1_slot_curve.html" loading="lazy" style="height:516px" title="Slot curve"></iframe><figcaption>The slot expectation curve. The gradient is steep at the top and nearly flat by the second round, which is why late steals are possible and top-pick "steals" are rare. Hover any pick for its expected career Win Shares.</figcaption></figure>
-<div class="eyebrow beat">The franchises</div>
+<div class="eyebrow beat" id="the-franchises">The franchises</div>
 
 <h2>Twenty-seven of thirty error bars cross zero</h2>
 <p>Rank the franchises by career Win Shares above slot expectation and
@@ -259,7 +275,7 @@ The ordering is the estimate, not a verdict. Ten thousand fan arguments
 about "our front office drafts badly" rest on differences this data cannot
 certify.</p>
 <figure class="figure-card"><iframe src="figures/fig2_franchises.html" loading="lazy" style="height:656px" title="Franchises"></iframe><figcaption>All 30 franchises by Win Shares above slot expectation, classes 1989-2015. Hover for the 95% interval and the share of drafted minutes each franchise actually kept: drafting well and keeping the player are different skills.</figcaption></figure>
-<div class="eyebrow beat">The colleges</div>
+<div class="eyebrow beat" id="the-colleges">The colleges</div>
 
 <h2>Wake Forest, quietly, out-drafted everyone</h2>
 <p>Flip the question from who drafts to who supplies. Among colleges with 8+
@@ -269,7 +285,7 @@ Marquette (+201), Florida (+142), and Xavier (+117). Among high-volume
 programs with 15+ draftees, Kentucky has the best hit rate: 25 of 41 picks
 (61%) became 10,000-minute NBA players.</p>
 <figure class="figure-card"><iframe src="figures/fig3_colleges.html" loading="lazy" style="height:536px" title="Colleges"></iframe><figcaption>The twelve colleges whose draftees most outplayed their draft slots. Hover for draftee counts and hit rates. Volume and efficiency diverge: powerhouse programs send more players, but the per-pick surplus hides in smaller ones.</figcaption></figure>
-<div class="eyebrow beat">The steals</div>
+<div class="eyebrow beat" id="the-steals">The steals</div>
 
 <h2>The biggest steal in the sample went first overall</h2>
 <p>"Steal" usually means a late pick who hit. Priced against slot expectation,
@@ -327,7 +343,7 @@ most expensive slot in basketball, and he still quadrupled its price.</p>
 </tr>
 </tbody>
 </table></div>
-<div class="eyebrow beat">Explore it yourself</div>
+<div class="eyebrow beat" id="explore-it-yourself">Explore it yourself</div>
 
 <h2>Every lottery, every board, in the browser</h2>
 <p>The numbers above compress 27 draft classes into a few tables. The
@@ -338,7 +354,7 @@ teams, in light and dark, timezone-safe, no install. The full tables behind
 this page (<code>colleges.csv</code>, <code>teams.csv</code>, <code>steals.csv</code>, <code>pick_curve.csv</code>,
 each with an <code>_r.csv</code> twin from the independent R implementation) ship in
 the repo, and the reconcile gate holds the twins equal.</p>
-<h2>Method, code, and verification</h2><p>The full technical write-up (data provenance, model specification, validation gates, and stated limitations) is the <a href="https://github.com/ismayc/draft-potential-by-team#readme">README</a>. The analysis is implemented independently in R and Python and reconciled to numeric tolerance; <code>run_checks.sh</code> replays every gate.</p>
+<h2 id="method-code-and-verification">Method, code, and verification</h2><p>The full technical write-up (data provenance, model specification, validation gates, and stated limitations) is the <a href="https://github.com/ismayc/draft-potential-by-team#readme">README</a>. The analysis is implemented independently in R and Python and reconciled to numeric tolerance; <code>run_checks.sh</code> replays every gate.</p>
 </main>
 <footer>Public data · dual-implementation reconciled · every gate scripted ·
 <a href="https://github.com/ismayc/basketball-data-science">the family on GitHub</a></footer>
@@ -396,6 +412,46 @@ the repo, and the reconcile gate holds the twins equal.</p>
   }, {threshold: 0.08, rootMargin: "0px 0px -6% 0px"});
   Array.prototype.forEach.call(els, function (el) { io.observe(el); });
   window.__revealReady = true;
+})();
+</script>
+<script>
+(function () {
+  var nav = document.querySelector(".sectionnav");
+  if (!nav) { return; }
+  var links = Array.prototype.slice.call(nav.querySelectorAll("a"));
+  var row = nav.querySelector(".inner");
+  var targets = links.map(function (a) {
+    return document.getElementById(a.getAttribute("href").slice(1));
+  });
+  var last = null;
+  function update() {
+    var edge = nav.getBoundingClientRect().bottom + 24, cur = -1;
+    targets.forEach(function (t, i) {
+      if (t && t.getBoundingClientRect().top <= edge) { cur = i; }
+    });
+    // At the foot of the page the last sections are too short to reach the
+    // bar, so the final one counts as current there.
+    var de = document.documentElement;
+    if (window.scrollY + window.innerHeight >= de.scrollHeight - 2) { cur = targets.length - 1; }
+    if (cur === last) { return; }
+    last = cur;
+    links.forEach(function (a, i) {
+      if (i === cur) { a.setAttribute("aria-current", "true"); }
+      else { a.removeAttribute("aria-current"); }
+    });
+    var a = links[cur];
+    if (a && row) {
+      var l = a.offsetLeft, r = l + a.offsetWidth;
+      if (l < row.scrollLeft || r > row.scrollLeft + row.clientWidth) {
+        row.scrollLeft = Math.max(0, l - 16);
+      }
+    }
+  }
+  // Straight from the event, not via requestAnimationFrame, which stalls in
+  // background tabs and offscreen frames; eight rect reads per scroll is cheap.
+  window.addEventListener("scroll", update, {passive: true});
+  window.addEventListener("resize", update);
+  update();
 })();
 </script>
 </body>
