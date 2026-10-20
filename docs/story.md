@@ -30,6 +30,12 @@ holds every lottery and full draft board since 1989.
 
 ## A pick slot is a price
 
+The whole analysis runs on one idea: price the slot, then score each pick
+against its price. The diagram shows the steps and where each result below
+comes from.
+
+{{svg:dg1_method|How the analysis works. Each slot gets a price from the careers that followed it, each pick is scored as its career minus that price, and the scores roll up into the franchise, college, and steal rankings that follow.}}
+
 Before anyone gets credit for drafting well, the draft itself has to be
 priced. The expectation curve below is a weighted isotonic fit of career
 Win Shares over picks 1-60: pick 1 carries an expectation of 77 career Win
@@ -54,6 +60,12 @@ certify.
 
 {{fig:fig2_franchises|All 30 franchises by Win Shares above slot expectation, classes 1989-2015. Hover for the 95% interval and the share of drafted minutes each franchise actually kept: drafting well and keeping the player are different skills.}}
 
+Drawn with their intervals, the rankings look different. Even Oklahoma
+City's interval reaches below zero, and the only franchises whose intervals
+clear zero sit at the bottom of the list.
+
+{{svg:dg3_intervals|Each franchise's Win Shares above slot (dot) with its 95% interval (line). Blue intervals cross zero: the data cannot tell that franchise's drafting from average. The red ones clear zero, and all of them clear it on the negative side.}}
+
 <div class="eyebrow beat">The colleges</div>
 
 ## Wake Forest, quietly, out-drafted everyone
@@ -77,7 +89,10 @@ pick 1 already promises. The rest of the top five: Dirk Nowitzki (+170 from
 pick 9), Chris Paul (+155 from pick 4), Kobe Bryant (+145 from pick 13),
 and Kevin Garnett (+136 from pick 5). A first-overall steal sounds like a
 contradiction. It is the strongest possible statement about a career: the
-most expensive slot in basketball, and he still quadrupled its price.
+most expensive slot in basketball, and his career still came to 3.6 times
+its price.
+
+{{svg:dg2_steals|Every steal in the table as a line from the slot's price (gray dot) to the career (blue dot); the line's length is the value above slot. Top picks start far to the right, so only a historic career leaves a long line; a late pick starts near zero, so most of its career counts.}}
 
 | Player | Year | Pick | Drafted by | WS above slot |
 | --- | --- | --- | --- | --- |

@@ -365,3 +365,35 @@ def test_generator_reports_missing_careers(tmp_path, monkeypatch, capsys):
     monkeypatch.setattr(mod04, "ANALYSIS", tmp_path)
     assert mod04.main() == 0
     assert "careers CSVs not present" in capsys.readouterr().out
+
+
+# ── 11: summary counts ──────────────────────────────────────────────────
+
+mod11 = load_script("11_summary_counts")
+
+
+def test_summary_counts_match_the_sources():
+    rows = dict(mod11.build()[1:])
+    with (ROOT / "data" / "draft_history.csv").open() as f:
+        assert int(rows["draft_history_picks"]) == sum(1 for _ in f) - 1
+    with (ROOT / "data" / "lottery.csv").open() as f:
+        assert int(rows["lottery_rows"]) == sum(1 for _ in f) - 1
+    with (ROOT / "output" / "teams.csv").open() as f:
+        teams = list(csv.DictReader(f))
+    assert int(rows["franchises_crossing_zero"]) == sum(
+        1 for t in teams if float(t["ci_lo"]) <= 0 <= float(t["ci_hi"]))
+
+
+def test_summary_counts_write_and_check(tmp_path, monkeypatch):
+    target = tmp_path / "summary_counts.csv"
+    monkeypatch.setattr(mod11, "TARGET", target)
+    assert mod11.main(["--check"]) == 1          # missing file is stale
+    assert mod11.main([]) == 0
+    assert target.read_text().startswith("metric,value\n")
+    assert mod11.main(["--check"]) == 0
+    target.write_text("stale\n")
+    assert mod11.main(["--check"]) == 1
+
+
+def test_summary_counts_are_committed_and_fresh():
+    assert mod11.main(["--check"]) == 0

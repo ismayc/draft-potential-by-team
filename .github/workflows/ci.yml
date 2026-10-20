@@ -41,8 +41,15 @@ jobs:
   # offline against committed data and cached raw HTML.
   pipeline:
     runs-on: ubuntu-latest
+    env:
+      # python/10_diagrams.py draws with the family's famdiagram module.
+      BBA_TOOLS: ${{ github.workspace }}/.bba-tools
     steps:
       - uses: actions/checkout@v6
+      - uses: actions/checkout@v6
+        with:
+          repository: ismayc/basketball-analysis-tools
+          path: .bba-tools
       - uses: actions/setup-python@v6
         with:
           python-version: '3.12'
@@ -56,6 +63,7 @@ jobs:
         run: Rscript -e 'install.packages(c("dplyr", "readr", "tidyr", "testthat"))'
       - run: Rscript tests/R/run_tests.R
       - run: python python/06_reconcile.py
+      - run: python python/11_summary_counts.py --check
 
   # Deploys only from main, and only after tests pass — a red build never ships.
   deploy:

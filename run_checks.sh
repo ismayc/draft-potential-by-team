@@ -13,6 +13,12 @@ npm run test:coverage
 echo "── python tests (pytest, 100% pipeline coverage enforced) ──"
 "$PY" -m pytest tests/python -q --cov=python --cov-report=term
 
+echo "── diagrams: committed SVGs match a fresh build ──"
+"$PY" python/10_diagrams.py --check
+
+echo "── summary counts: committed CSV matches a fresh count ──"
+"$PY" python/11_summary_counts.py --check
+
 echo "── R analysis tests (testthat) ──"
 Rscript tests/R/run_tests.R
 
